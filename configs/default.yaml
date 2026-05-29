@@ -1,7 +1,7 @@
 seed: 42
 
 data:
-  root: /path/to/VeRi-776
+  root: /workspace/VeRi-776/VeRi
   img_size: 320
   batch_size: 128
   p: 16
