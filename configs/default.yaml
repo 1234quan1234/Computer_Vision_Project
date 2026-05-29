@@ -1,0 +1,44 @@
+seed: 42
+
+data:
+  root: /path/to/VeRi-776
+  img_size: 320
+  batch_size: 128
+  p: 16
+  k: 8
+  num_workers: 8
+  eval_batch_size: 256
+  color_jitter: true
+  random_erasing: true
+
+model:
+  pretrained: true
+  use_sem: true
+  use_afem: true
+  afem_groups: 32
+  clip_img_size: 320
+  clip_patch_size: 16
+  unfreeze_last_blocks: 4
+
+loss:
+  label_smoothing: 0.1
+  supcon_temp: 0.07
+  supcon_weight: 1.0
+
+optim:
+  lr: 0.00035
+  weight_decay: 0.0005
+
+train:
+  epochs: 120
+  eval_period: 10
+  log_interval: 50
+
+eval:
+  rerank: true
+  k1: 20
+  k2: 6
+  lambda_value: 0.3
+
+output:
+  dir: outputs/default

@@ -1,0 +1,9 @@
+torch>=2.1
+torchvision>=0.16
+numpy>=1.23
+PyYAML>=6.0
+tqdm>=4.66
+opencv-python>=4.8
+Pillow>=10.0
+scipy>=1.10
+git+https://github.com/openai/CLIP.git

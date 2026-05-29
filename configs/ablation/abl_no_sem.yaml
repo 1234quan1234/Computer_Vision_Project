@@ -1,0 +1,7 @@
+base: ../default.yaml
+
+model:
+  use_sem: false
+
+output:
+  dir: outputs/abl_no_sem

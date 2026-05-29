@@ -1,0 +1,7 @@
+base: ../default.yaml
+
+data:
+  color_jitter: false
+
+output:
+  dir: outputs/abl_no_colorjitter

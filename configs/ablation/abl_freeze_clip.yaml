@@ -1,0 +1,7 @@
+base: ../default.yaml
+
+model:
+  unfreeze_last_blocks: 0
+
+output:
+  dir: outputs/abl_freeze_clip

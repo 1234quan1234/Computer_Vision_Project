@@ -1,0 +1,7 @@
+base: ../default.yaml
+
+model:
+  use_afem: false
+
+output:
+  dir: outputs/abl_no_afem

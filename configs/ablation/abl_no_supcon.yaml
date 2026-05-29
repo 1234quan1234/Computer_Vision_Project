@@ -1,0 +1,7 @@
+base: ../default.yaml
+
+loss:
+  supcon_weight: 0.0
+
+output:
+  dir: outputs/abl_no_supcon

@@ -1,0 +1,7 @@
+base: ../default.yaml
+
+optim:
+  lr: 0.0001
+
+output:
+  dir: outputs/abl_low_lr
