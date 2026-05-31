@@ -95,9 +95,12 @@ def main():
     parser = argparse.ArgumentParser(description="Train CLIP-SEM ReID model")
     parser.add_argument("--config", type=str, default="configs/default.yaml")
     parser.add_argument("--output-dir", type=str, default=None)
+    parser.add_argument("--seed", type=int, default=None)
     args = parser.parse_args()
 
     cfg = load_config(args.config)
+    if args.seed is not None:
+        cfg["seed"] = args.seed
     seed_everything(cfg.get("seed", 42))
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -212,6 +215,7 @@ def main():
     output_dir = args.output_dir or cfg["output"]["dir"]
     os.makedirs(output_dir, exist_ok=True)
     logger = setup_logging(output_dir, args.config)
+    logger.info("Seed: %s", cfg.get("seed", 42))
 
     best_map = 0.0
     for epoch in range(1, epochs + 1):

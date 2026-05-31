@@ -3,9 +3,9 @@ seed: 42
 data:
   root: /workspace/VeRi-776/VeRi
   img_size: 320
-  batch_size: 64
+  batch_size: 128
   p: 16
-  k: 4
+  k: 8
   time_thresh: 300
   num_workers: 8
   eval_batch_size: 256
@@ -27,11 +27,11 @@ loss:
   supcon_weight: 1.0
 
 optim:
-  lr: 0.000175
-  lr_backbone: 0.0001
+  lr: 0.00035
+  lr_backbone: 0.00035
   lr_sem: 0.00001
-  lr_head: 0.000175
-  lr_afem: 0.000175
+  lr_head: 0.0007
+  lr_afem: 0.0007
   weight_decay: 0.0005
   warmup_epochs: 10
 
