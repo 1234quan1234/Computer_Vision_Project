@@ -127,7 +127,7 @@ def main():
         clip_patch_size=cfg["model"].get("clip_patch_size", 16),
         unfreeze_last_blocks=cfg["model"].get("unfreeze_last_blocks", 4),
     )
-    model = model.to(device=device, dtype=torch.bfloat16)
+    model = model.to(device=device)
 
     optimizer = torch.optim.AdamW(
         model.parameters(),

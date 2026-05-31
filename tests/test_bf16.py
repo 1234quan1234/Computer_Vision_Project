@@ -11,7 +11,7 @@ def test_bf16_compatibility() -> None:
 
     use_sem = os.environ.get("SKIP_CLIP", "0") != "1"
     model = ClipSENet(num_classes=776, pretrained=False, use_sem=use_sem, use_afem=True)
-    model = model.to(device="cuda", dtype=torch.bfloat16)
+    model = model.to(device="cuda")
 
     dummy = torch.randn(2, 3, 320, 320, device="cuda")
     targets = torch.randint(0, 776, (2,), device="cuda")
