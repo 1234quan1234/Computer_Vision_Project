@@ -8,10 +8,18 @@ from torch.utils.data import Sampler
 class SpatioTemporalPKSampler(Sampler):
     """PK sampler with light spatio-temporal diversity heuristics."""
 
-    def __init__(self, data_source, num_pids: int = 16, num_instances: int = 8, seed: int = 0) -> None:
+    def __init__(
+        self,
+        data_source,
+        num_pids: int = 16,
+        num_instances: int = 8,
+        time_thresh: int = 0,
+        seed: int = 0,
+    ) -> None:
         self.data_source = data_source
         self.num_pids = num_pids
         self.num_instances = num_instances
+        self.time_thresh = time_thresh
         self.seed = seed
         self.epoch = 0
 
@@ -51,6 +59,30 @@ class SpatioTemporalPKSampler(Sampler):
         return self.length
 
     def _sample_instances(self, entries: List[Tuple[int, int, int]], rng: random.Random) -> List[int]:
+        if len(entries) >= self.num_instances and self.time_thresh > 0:
+            entries_copy = entries.copy()
+            rng.shuffle(entries_copy)
+            selected: List[Tuple[int, int, int]] = []
+
+            for idx, camid, frame in entries_copy:
+                conflict = False
+                for _, sel_cam, sel_frame in selected:
+                    if camid == sel_cam and abs(frame - sel_frame) < self.time_thresh:
+                        conflict = True
+                        break
+                if conflict:
+                    continue
+                selected.append((idx, camid, frame))
+                if len(selected) >= self.num_instances:
+                    break
+
+            if len(selected) < self.num_instances:
+                pool = entries_copy if entries_copy else entries
+                while len(selected) < self.num_instances:
+                    selected.append(rng.choice(pool))
+
+            return [idx for idx, _, _ in selected]
+
         if len(entries) >= self.num_instances:
             cam_groups = defaultdict(list)
             for idx, camid, frame in entries:

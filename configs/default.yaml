@@ -6,6 +6,7 @@ data:
   batch_size: 64
   p: 16
   k: 4
+  time_thresh: 300
   num_workers: 8
   eval_batch_size: 256
   color_jitter: true
@@ -27,12 +28,18 @@ loss:
 
 optim:
   lr: 0.000175
+  lr_backbone: 0.0001
+  lr_sem: 0.00001
+  lr_head: 0.000175
+  lr_afem: 0.000175
   weight_decay: 0.0005
+  warmup_epochs: 10
 
 train:
   epochs: 70
   eval_period: 10
   log_interval: 50
+  grad_clip: 0.5
 
 eval:
   rerank: false

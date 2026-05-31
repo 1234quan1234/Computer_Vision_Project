@@ -1,5 +1,6 @@
 import argparse
 import logging
+import math
 import os
 import random
 import sys
@@ -118,6 +119,7 @@ def main():
         train_set,
         num_pids=cfg["data"]["p"],
         num_instances=cfg["data"]["k"],
+        time_thresh=cfg["data"].get("time_thresh", 0),
         seed=cfg.get("seed", 42),
     )
 
@@ -158,11 +160,51 @@ def main():
     )
     model = model.to(device=device)
 
-    optimizer = torch.optim.AdamW(
-        model.parameters(),
-        lr=cfg["optim"]["lr"],
-        weight_decay=cfg["optim"]["weight_decay"],
+    base_lr = cfg["optim"]["lr"]
+    lr_backbone = cfg["optim"].get("lr_backbone", base_lr)
+    lr_sem = cfg["optim"].get("lr_sem", base_lr)
+    lr_head = cfg["optim"].get("lr_head", base_lr)
+    lr_afem = cfg["optim"].get("lr_afem", lr_head)
+
+    param_groups = []
+
+    def add_group(params, lr):
+        params = [p for p in params if p.requires_grad]
+        if params:
+            param_groups.append({"params": params, "lr": lr})
+
+    add_group(model.backbone.parameters(), lr_backbone)
+    if model.use_sem and model.sem is not None:
+        add_group(model.sem.parameters(), lr_sem)
+    if model.use_afem and model.afem is not None:
+        add_group(model.afem.parameters(), lr_afem)
+
+    head_params = (
+        list(model.concat_fc.parameters())
+        + list(model.concat_norm.parameters())
+        + list(model.classifier.parameters())
     )
+    add_group(head_params, lr_head)
+
+    if param_groups:
+        optimizer = torch.optim.AdamW(param_groups, weight_decay=cfg["optim"]["weight_decay"])
+    else:
+        optimizer = torch.optim.AdamW(
+            model.parameters(),
+            lr=base_lr,
+            weight_decay=cfg["optim"]["weight_decay"],
+        )
+
+    epochs = cfg["train"]["epochs"]
+    warmup_epochs = int(cfg["optim"].get("warmup_epochs", 0))
+
+    def warmup_cosine_lambda(epoch: int) -> float:
+        if warmup_epochs > 0 and epoch < warmup_epochs:
+            return float(epoch + 1) / float(warmup_epochs)
+        progress = (epoch - warmup_epochs) / max(1, epochs - warmup_epochs)
+        return 0.5 * (1.0 + math.cos(math.pi * progress))
+
+    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=warmup_cosine_lambda)
 
     loss_ce = LabelSmoothingCrossEntropy(eps=cfg["loss"]["label_smoothing"])
     loss_supcon = SupConLoss(temperature=cfg["loss"]["supcon_temp"])
@@ -172,7 +214,6 @@ def main():
     logger = setup_logging(output_dir, args.config)
 
     best_map = 0.0
-    epochs = cfg["train"]["epochs"]
     for epoch in range(1, epochs + 1):
         if hasattr(train_loader.sampler, "set_epoch"):
             train_loader.sampler.set_epoch(epoch)
@@ -187,6 +228,7 @@ def main():
             epoch=epoch,
             supcon_weight=cfg["loss"]["supcon_weight"],
             log_interval=cfg["train"].get("log_interval", 50),
+            grad_clip=cfg["train"].get("grad_clip", 0.0),
         )
 
         if epoch % cfg["train"]["eval_period"] == 0 or epoch == epochs:
@@ -213,6 +255,8 @@ def main():
             f"loss={train_metrics['loss']:.4f} | "
             f"mAP={best_map:.4f}"
         )
+
+        scheduler.step()
 
 
 if __name__ == "__main__":

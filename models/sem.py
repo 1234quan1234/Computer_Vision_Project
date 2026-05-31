@@ -58,6 +58,11 @@ class CLIPSEM(nn.Module):
             for param in blocks[-unfreeze_last_blocks:].parameters():
                 param.requires_grad = True
 
+        for param in self.visual.ln_post.parameters():
+            param.requires_grad = True
+        if self.visual.proj is not None:
+            self.visual.proj.requires_grad = True
+
     def forward(self, images: torch.Tensor) -> torch.Tensor:
         visual = self.visual
 

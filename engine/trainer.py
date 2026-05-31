@@ -14,6 +14,7 @@ def train_one_epoch(
     epoch: int,
     supcon_weight: float = 1.0,
     log_interval: int = 50,
+    grad_clip: float = 0.0,
 ) -> Dict[str, float]:
     model.train()
     autocast_enabled = device.type == "cuda"
@@ -44,6 +45,8 @@ def train_one_epoch(
             loss = loss_ce_val + supcon_weight * loss_supcon_val
 
         loss.backward()
+        if grad_clip and grad_clip > 0.0:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=grad_clip)
         optimizer.step()
 
         total_loss += loss.item()
