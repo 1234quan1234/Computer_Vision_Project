@@ -1,7 +1,9 @@
 import argparse
+import logging
 import os
 import random
 import sys
+from datetime import datetime
 
 import numpy as np
 import torch
@@ -59,6 +61,33 @@ def save_checkpoint(path, model, optimizer, epoch, best_map):
         "best_map": best_map,
     }
     torch.save(state, path)
+
+
+def setup_logging(output_dir: str, config_path: str) -> logging.Logger:
+    log_dir = os.path.join(output_dir, "logs")
+    os.makedirs(log_dir, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_path = os.path.join(log_dir, f"train_{timestamp}.log")
+
+    logger = logging.getLogger("train")
+    logger.setLevel(logging.INFO)
+    logger.handlers.clear()
+    logger.propagate = False
+
+    formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
+
+    file_handler = logging.FileHandler(log_path)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
+
+    logger.info("Config: %s", os.path.abspath(config_path))
+    logger.info("Output dir: %s", os.path.abspath(output_dir))
+    logger.info("Log file: %s", os.path.abspath(log_path))
+    return logger
 
 
 def main():
@@ -140,6 +169,7 @@ def main():
 
     output_dir = args.output_dir or cfg["output"]["dir"]
     os.makedirs(output_dir, exist_ok=True)
+    logger = setup_logging(output_dir, args.config)
 
     best_map = 0.0
     epochs = cfg["train"]["epochs"]
@@ -178,7 +208,7 @@ def main():
 
         save_checkpoint(os.path.join(output_dir, "last.pth"), model, optimizer, epoch, best_map)
 
-        print(
+        logger.info(
             f"Epoch {epoch}/{epochs} | "
             f"loss={train_metrics['loss']:.4f} | "
             f"mAP={best_map:.4f}"

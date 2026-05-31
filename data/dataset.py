@@ -11,22 +11,33 @@ IMG_EXTS = (".jpg", ".jpeg", ".png", ".bmp")
 
 def _parse_filename(path: str) -> Tuple[int, int, int]:
     name = os.path.splitext(os.path.basename(path))[0]
-    # Expected pattern: 0001_c1_000100 (pid_cam_frame)
+    # Expected pattern: 0001_c1_00030600 (pid_cam_hhmmssff)
     parts = name.split("_")
     pid = int(parts[0])
     camid = 0
-    frame = 0
+    timestamp = 0
 
-    cam_match = re.search(r"[cC](\d+)", name)
+    cam_token = parts[1] if len(parts) > 1 else ""
+    cam_match = re.search(r"[cC](\d+)", cam_token) or re.search(r"[cC](\d+)", name)
     if cam_match:
         camid = int(cam_match.group(1))
 
+    ts_token = ""
     for token in reversed(parts):
         if token.isdigit():
-            frame = int(token)
+            ts_token = token
             break
 
-    return pid, camid, frame
+    if ts_token and len(ts_token) == 8:
+        hours = int(ts_token[0:2])
+        minutes = int(ts_token[2:4])
+        seconds = int(ts_token[4:6])
+        frames = int(ts_token[6:8])
+        timestamp = (hours * 3600 + minutes * 60 + seconds) * 30 + frames
+    elif ts_token:
+        timestamp = int(ts_token)
+
+    return pid, camid, timestamp
 
 
 class VeRi776Dataset(Dataset):
