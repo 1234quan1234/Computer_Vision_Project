@@ -2,7 +2,7 @@
 set -euo pipefail
 
 CONFIGS=(
-  configs/ablation/abl_no_sem.yaml
+  configs/ablation/abl_baseline.yaml
   configs/ablation/abl_no_afem.yaml
   configs/ablation/abl_no_supcon.yaml
   configs/ablation/abl_no_rerank.yaml

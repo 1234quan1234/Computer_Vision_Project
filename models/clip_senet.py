@@ -76,13 +76,20 @@ class ClipSENet(nn.Module):
         cnn_in = self._normalize(images, self.imagenet_mean, self.imagenet_std)
         global_feat, bn_feat = self.backbone(cnn_in)
 
-        if self.use_sem:
-            clip_in = self._normalize(images, self.clip_mean, self.clip_std)
-            clip_feat = self.sem(clip_in)
-            if self.use_afem:
-                clip_feat = self.afem(clip_feat)
-        else:
-            clip_feat = torch.zeros_like(bn_feat)
+        if not self.use_sem:
+            logits = self.classifier(bn_feat) if return_logits else None
+            return {
+                "logits": logits,
+                "fusion_feat": bn_feat,
+                "global_feat": global_feat,
+                "bn_feat": bn_feat,
+                "clip_feat": torch.zeros_like(bn_feat),
+            }
+
+        clip_in = self._normalize(images, self.clip_mean, self.clip_std)
+        clip_feat = self.sem(clip_in)
+        if self.use_afem:
+            clip_feat = self.afem(clip_feat)
 
         fusion = torch.cat([bn_feat, clip_feat], dim=1)
         fusion = self.concat_norm(self.concat_fc(fusion))
