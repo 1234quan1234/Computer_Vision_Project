@@ -257,6 +257,8 @@ def main():
         logger.info(
             f"Epoch {epoch}/{epochs} | "
             f"loss={train_metrics['loss']:.4f} | "
+            f"loss_ce={train_metrics['loss_ce']:.4f} | "
+            f"loss_supcon={train_metrics['loss_supcon']:.4f} | "
             f"mAP={best_map:.4f}"
         )
 
