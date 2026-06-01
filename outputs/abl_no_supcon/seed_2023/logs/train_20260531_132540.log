@@ -1,0 +1,13 @@
+2026-05-31 13:25:40,817 | INFO | Config: /workspace/Computer_Vision_Project/configs/ablation/abl_no_supcon.yaml
+2026-05-31 13:25:40,819 | INFO | Output dir: /workspace/Computer_Vision_Project/outputs/abl_no_supcon/seed_2023
+2026-05-31 13:25:40,819 | INFO | Log file: /workspace/Computer_Vision_Project/outputs/abl_no_supcon/seed_2023/logs/train_20260531_132540.log
+2026-05-31 13:25:40,820 | INFO | Seed: 2023
+2026-05-31 13:25:58,435 | INFO | Epoch 1/70 | loss=6.4948 | loss_ce=6.4948 | loss_supcon=0.0000 | mAP=0.0000
+2026-05-31 13:26:13,014 | INFO | Epoch 2/70 | loss=6.2363 | loss_ce=6.2363 | loss_supcon=0.0000 | mAP=0.0000
+2026-05-31 13:26:27,829 | INFO | Epoch 3/70 | loss=5.8780 | loss_ce=5.8780 | loss_supcon=0.0000 | mAP=0.0000
+2026-05-31 13:26:42,465 | INFO | Epoch 4/70 | loss=5.4803 | loss_ce=5.4803 | loss_supcon=0.0000 | mAP=0.0000
+2026-05-31 13:26:57,174 | INFO | Epoch 5/70 | loss=5.0305 | loss_ce=5.0305 | loss_supcon=0.0000 | mAP=0.0000
+2026-05-31 13:27:11,812 | INFO | Epoch 6/70 | loss=4.5899 | loss_ce=4.5899 | loss_supcon=0.0000 | mAP=0.0000
+2026-05-31 13:27:26,586 | INFO | Epoch 7/70 | loss=4.1583 | loss_ce=4.1583 | loss_supcon=0.0000 | mAP=0.0000
+2026-05-31 13:27:41,248 | INFO | Epoch 8/70 | loss=3.7513 | loss_ce=3.7513 | loss_supcon=0.0000 | mAP=0.0000
+2026-05-31 13:27:56,122 | INFO | Epoch 9/70 | loss=3.3709 | loss_ce=3.3709 | loss_supcon=0.0000 | mAP=0.0000
