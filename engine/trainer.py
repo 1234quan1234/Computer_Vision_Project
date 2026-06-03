@@ -16,6 +16,31 @@ def train_one_epoch(
     log_interval: int = 50,
     grad_clip: float = 0.0,
 ) -> Dict[str, float]:
+    """Run one full training epoch over the dataset.
+
+    Computes the combined loss:
+        ``total_loss = CE_loss + supcon_weight * SupCon_loss``
+
+    Uses BF16 autocast on CUDA for efficient mixed-precision training
+    while keeping loss computation in FP32 for numerical stability.
+
+    Args:
+        model: The ``ClipSENet`` model to train.
+        dataloader: Training DataLoader with PK-sampled batches.
+        optimizer: AdamW optimizer with per-module learning rates.
+        loss_ce: Label-smoothing Cross-Entropy loss function.
+        loss_supcon: Supervised Contrastive loss function.
+        device: Torch device (cuda or cpu).
+        epoch: Current epoch number (for progress bar display).
+        supcon_weight: Scalar multiplier for the SupCon loss term.
+            Set to 0.0 to disable metric learning (CE-only ablation).
+        log_interval: Print running averages every N steps.
+        grad_clip: Maximum gradient norm for clipping. Set to 0.0 to disable.
+
+    Returns:
+        Dict with averaged training metrics: ``'loss'``, ``'loss_ce'``,
+        and ``'loss_supcon'``.
+    """
     model.train()
     autocast_enabled = device.type == "cuda"
 

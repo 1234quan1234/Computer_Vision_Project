@@ -6,12 +6,30 @@ from engine.re_ranking import re_ranking
 
 
 def _to_numpy(value):
+    """Convert a torch Tensor or array-like to a NumPy array."""
     if torch.is_tensor(value):
         return value.cpu().numpy()
     return np.asarray(value)
 
 
 def extract_features(model, dataloader, device):
+    """Extract L2-normalized feature vectors from all images in a dataloader.
+
+    Runs the model in eval mode with no gradients and BF16 autocast
+    (on CUDA). Uses ``fusion_feat`` from the model output as the
+    final embedding for retrieval.
+
+    Args:
+        model: A ``ClipSENet`` model instance.
+        dataloader: DataLoader yielding ``(images, pids, camids, frames, paths)``.
+        device: Torch device to run inference on.
+
+    Returns:
+        Tuple of ``(features, pids, camids)`` where:
+          - ``features``: ``(N, 512)`` float32 NumPy array of L2-normalized embeddings.
+          - ``pids``: ``(N,)`` int array of vehicle identity labels.
+          - ``camids``: ``(N,)`` int array of camera IDs.
+    """
     model.eval()
     autocast_enabled = device.type == "cuda"
 
@@ -42,6 +60,17 @@ def extract_features(model, dataloader, device):
 
 
 def compute_distance_matrix(qf, gf, metric: str = "cosine"):
+    """Compute pairwise distance matrix between query and gallery features.
+
+    Args:
+        qf: Query features of shape ``(num_query, D)``.
+        gf: Gallery features of shape ``(num_gallery, D)``.
+        metric: Distance metric — ``'cosine'`` (1 - cosine similarity)
+            or ``'euclidean'`` (squared L2 distance).
+
+    Returns:
+        Distance matrix of shape ``(num_query, num_gallery)``.
+    """
     if metric == "cosine":
         qf = qf / np.linalg.norm(qf, axis=1, keepdims=True)
         gf = gf / np.linalg.norm(gf, axis=1, keepdims=True)
@@ -55,6 +84,26 @@ def compute_distance_matrix(qf, gf, metric: str = "cosine"):
 
 
 def evaluate_rank(distmat, q_pids, g_pids, q_camids, g_camids, max_rank: int = 50):
+    """Compute mAP and CMC curve from a distance matrix.
+
+    For each query, gallery images with the **same pid AND same camid**
+    are excluded (standard ReID protocol — a query should not match
+    itself from the same camera viewpoint).
+
+    Args:
+        distmat: Distance matrix of shape ``(num_query, num_gallery)``.
+        q_pids: Query identity labels ``(num_query,)``.
+        g_pids: Gallery identity labels ``(num_gallery,)``.
+        q_camids: Query camera IDs ``(num_query,)``.
+        g_camids: Gallery camera IDs ``(num_gallery,)``.
+        max_rank: Maximum rank for CMC computation.
+
+    Returns:
+        Tuple of ``(cmc, mAP)`` where:
+          - ``cmc``: CMC curve array of length ``max_rank``.
+            ``cmc[0]`` = Rank-1 accuracy, ``cmc[4]`` = Rank-5, etc.
+          - ``mAP``: Mean Average Precision (float).
+    """
     num_q, num_g = distmat.shape
     if num_g < max_rank:
         max_rank = num_g
@@ -108,6 +157,27 @@ def evaluate(
     lambda_value: float = 0.3,
     max_rank: int = 50,
 ):
+    """Full evaluation pipeline: extract features, compute distances, and rank.
+
+    Orchestrates the complete evaluation workflow:
+      1. Extract features from query and gallery sets.
+      2. Compute distance matrix (optionally with k-reciprocal re-ranking).
+      3. Compute mAP and CMC metrics.
+
+    Args:
+        model: Trained ``ClipSENet`` model.
+        query_loader: DataLoader for the query set.
+        gallery_loader: DataLoader for the gallery set.
+        device: Torch device.
+        rerank: If True, apply k-reciprocal re-ranking to refine distances.
+        k1: k-reciprocal parameter — size of the initial neighbor set.
+        k2: k-reciprocal parameter — size for query expansion averaging.
+        lambda_value: Interpolation weight between Jaccard and original distance.
+        max_rank: Maximum rank for CMC curve.
+
+    Returns:
+        Dict with ``'cmc'`` (CMC curve array) and ``'mAP'`` (float).
+    """
     qf, q_pids, q_camids = extract_features(model, query_loader, device)
     gf, g_pids, g_camids = extract_features(model, gallery_loader, device)
 

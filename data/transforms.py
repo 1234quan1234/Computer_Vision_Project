@@ -8,6 +8,23 @@ CLIP_STD = (0.26862954, 0.26130258, 0.27577711)
 
 
 def build_train_transforms(img_size: int = 320, color_jitter: bool = True, random_erasing: bool = True):
+    """Build the training-time augmentation pipeline.
+
+    The pipeline applies:
+      1. Resize to ``(img_size, img_size)`` with bicubic interpolation.
+      2. Random horizontal flip (p=0.5) for viewpoint invariance.
+      3. (Optional) Color jitter to simulate lighting changes.
+      4. Convert to tensor.
+      5. (Optional) Random erasing to simulate partial occlusion.
+
+    Args:
+        img_size: Target spatial resolution (both height and width).
+        color_jitter: If True, apply brightness/contrast/saturation/hue jitter.
+        random_erasing: If True, randomly erase rectangular patches.
+
+    Returns:
+        A ``torchvision.transforms.Compose`` pipeline.
+    """
     ops = [
         transforms.Resize((img_size, img_size), interpolation=InterpolationMode.BICUBIC),
         transforms.RandomHorizontalFlip(p=0.5),
@@ -29,6 +46,17 @@ def build_train_transforms(img_size: int = 320, color_jitter: bool = True, rando
 
 
 def build_val_transforms(img_size: int = 320):
+    """Build the validation/test preprocessing pipeline.
+
+    Only resizes and converts to tensor (no augmentation), ensuring
+    deterministic feature extraction during evaluation.
+
+    Args:
+        img_size: Target spatial resolution (both height and width).
+
+    Returns:
+        A ``torchvision.transforms.Compose`` pipeline.
+    """
     ops = [
         transforms.Resize((img_size, img_size), interpolation=InterpolationMode.BICUBIC),
         transforms.ToTensor(),

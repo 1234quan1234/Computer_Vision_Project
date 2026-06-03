@@ -47,7 +47,7 @@ The default dataset path is configured in `configs/default.yaml` under `data.roo
 ```
 
 Update that path if your dataset lives elsewhere.
-
+@
 ## Training
 
 Run a single training job:

@@ -12,7 +12,31 @@ CLIP_STD = (0.26862954, 0.26130258, 0.27577711)
 
 
 class ClipSENet(nn.Module):
-    """Main model combining ResNet-18, CLIP SEM, AFEM, and fusion head."""
+    """CLIP-SE Lite: Main model combining visual and semantic branches for Vehicle ReID.
+
+    Architecture overview:
+      1. **Visual branch** (ResNet-18): Extracts 512-dim geometric/texture features.
+      2. **Semantic branch** (CLIP ViT-B/16 SEM): Extracts 512-dim semantic features
+         (color, vehicle type, high-level concepts).
+      3. **AFEM**: Refines CLIP features via group-wise recalibration.
+      4. **Fusion head**: Concatenates visual + semantic features (1024-dim),
+         projects to 512-dim with BN, and feeds into the classifier.
+
+    The model applies separate normalization for each branch: ImageNet
+    statistics for ResNet-18 and CLIP statistics for the ViT encoder.
+    Normalization buffers are registered (non-persistent) so they move
+    to the correct device automatically.
+
+    Args:
+        num_classes: Number of vehicle identities in the training set.
+        pretrained: Use ImageNet-pretrained ResNet-18 weights.
+        use_sem: Enable the CLIP semantic branch.
+        use_afem: Enable the AFEM feature enhancement module.
+        afem_groups: Number of groups (G) for AFEM recalibration.
+        clip_img_size: Input resolution for the CLIP branch.
+        clip_patch_size: Patch size for ViT (16 for ViT-B/16).
+        unfreeze_last_blocks: Number of final ViT blocks to fine-tune.
+    """
 
     def __init__(
         self,
@@ -70,9 +94,37 @@ class ClipSENet(nn.Module):
         )
 
     def _normalize(self, x: torch.Tensor, mean: torch.Tensor, std: torch.Tensor) -> torch.Tensor:
+        """Apply channel-wise normalization to a batch of images.
+
+        Args:
+            x: Raw images of shape ``(B, 3, H, W)`` in [0, 1] range.
+            mean: Per-channel mean as ``(1, 3, 1, 1)`` tensor.
+            std: Per-channel std as ``(1, 3, 1, 1)`` tensor.
+
+        Returns:
+            Normalized images of same shape.
+        """
         return (x - mean) / std
 
     def forward(self, images: torch.Tensor, return_logits: bool = True):
+        """Run the full dual-branch forward pass.
+
+        Args:
+            images: Raw images of shape ``(B, 3, H, W)`` in [0, 1] range.
+                The model handles normalization internally (ImageNet for
+                ResNet, CLIP stats for ViT).
+            return_logits: If True, compute classification logits for
+                Cross-Entropy loss. Set to False during inference.
+
+        Returns:
+            Dict with keys:
+              - ``logits``: Classification logits ``(B, num_classes)`` or None.
+              - ``fusion_feat``: Final fused features ``(B, 512)`` used for
+                retrieval and metric loss.
+              - ``global_feat``: Raw ResNet features before BNNeck ``(B, 512)``.
+              - ``bn_feat``: BNNeck-normalized ResNet features ``(B, 512)``.
+              - ``clip_feat``: CLIP/AFEM semantic features ``(B, 512)``.
+        """
         cnn_in = self._normalize(images, self.imagenet_mean, self.imagenet_std)
         global_feat, bn_feat = self.backbone(cnn_in)
 

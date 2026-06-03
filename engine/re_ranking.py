@@ -2,12 +2,53 @@ import numpy as np
 
 
 def _compute_distance(features: np.ndarray) -> np.ndarray:
+    """Compute squared Euclidean distance matrix between all feature pairs.
+
+    Uses the expansion ``||a - b||^2 = ||a||^2 + ||b||^2 - 2 * a . b``
+    for efficient batch computation.
+
+    Args:
+        features: Feature matrix of shape ``(N, D)``.
+
+    Returns:
+        Symmetric distance matrix of shape ``(N, N)`` with zeros on diagonal.
+    """
     squared = np.sum(np.square(features), axis=1, keepdims=True)
     dist = squared + squared.T - 2.0 * np.dot(features, features.T)
     return np.maximum(dist, 0.0)
 
 
 def re_ranking(qf, gf, k1: int = 20, k2: int = 6, lambda_value: float = 0.3):
+    """K-reciprocal re-ranking for vehicle ReID retrieval.
+
+    Refines raw feature distances using neighborhood consistency.
+    The algorithm:
+      1. Find k-reciprocal nearest neighbors for each sample.
+      2. Expand the neighbor set by including neighbors-of-neighbors
+         that share sufficient overlap (> 2/3) with the original set.
+      3. Build a Jaccard distance matrix from the expanded neighbor sets.
+      4. (Optional) Average neighbor distributions for query expansion (k2).
+      5. Interpolate between Jaccard and original distance using ``lambda_value``.
+
+    This technique is especially effective for ReID because it filters
+    out false positives (e.g., same-color different-ID vehicles) by
+    verifying that the neighborhood relationship is bidirectional.
+
+    Reference:
+        Zhong et al., "Re-ranking Person Re-identification with k-reciprocal
+        Encoding", CVPR 2017.
+
+    Args:
+        qf: Query features of shape ``(num_query, D)``.
+        gf: Gallery features of shape ``(num_gallery, D)``.
+        k1: Size of the initial k-nearest neighbor set.
+        k2: Number of neighbors for query expansion averaging.
+        lambda_value: Weight for original distance in the final interpolation
+            (0.0 = pure Jaccard, 1.0 = pure original distance).
+
+    Returns:
+        Refined distance matrix of shape ``(num_query, num_gallery)``.
+    """
     all_features = np.vstack([qf, gf]).astype(np.float32)
     num_q = qf.shape[0]
     all_num = all_features.shape[0]
