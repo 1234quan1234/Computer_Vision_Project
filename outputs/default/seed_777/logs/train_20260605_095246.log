@@ -1,0 +1,14 @@
+2026-06-05 09:52:46,520 | INFO | Config: /workspace/Computer_Vision_Project/configs/default.yaml
+2026-06-05 09:52:46,522 | INFO | Output dir: /workspace/Computer_Vision_Project/outputs/default/seed_777
+2026-06-05 09:52:46,523 | INFO | Log file: /workspace/Computer_Vision_Project/outputs/default/seed_777/logs/train_20260605_095246.log
+2026-06-05 09:52:46,525 | INFO | Seed: 777
+2026-06-05 09:53:42,381 | INFO | Epoch 1/10 | loss=10.7499 | loss_ce=6.5094 | loss_supcon=4.2405 | mAP=0.0000
+2026-06-05 09:54:19,107 | INFO | Epoch 2/10 | loss=9.8052 | loss_ce=6.2578 | loss_supcon=3.5475 | mAP=0.0000
+2026-06-05 09:54:56,391 | INFO | Epoch 3/10 | loss=9.0979 | loss_ce=5.8709 | loss_supcon=3.2271 | mAP=0.0000
+2026-06-05 09:55:34,332 | INFO | Epoch 4/10 | loss=8.5272 | loss_ce=5.4920 | loss_supcon=3.0351 | mAP=0.0000
+2026-06-05 09:56:12,049 | INFO | Epoch 5/10 | loss=8.0277 | loss_ce=5.1440 | loss_supcon=2.8837 | mAP=0.0000
+2026-06-05 09:56:49,454 | INFO | Epoch 6/10 | loss=7.6429 | loss_ce=4.7914 | loss_supcon=2.8516 | mAP=0.0000
+2026-06-05 09:57:26,508 | INFO | Epoch 7/10 | loss=7.2297 | loss_ce=4.4593 | loss_supcon=2.7703 | mAP=0.0000
+2026-06-05 09:58:04,303 | INFO | Epoch 8/10 | loss=6.8954 | loss_ce=4.1242 | loss_supcon=2.7712 | mAP=0.0000
+2026-06-05 09:58:41,506 | INFO | Epoch 9/10 | loss=6.5214 | loss_ce=3.8216 | loss_supcon=2.6998 | mAP=0.0000
+2026-06-05 10:00:36,914 | INFO | Epoch 10/10 | loss=6.2508 | loss_ce=3.5579 | loss_supcon=2.6929 | mAP=0.4764

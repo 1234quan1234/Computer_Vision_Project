@@ -96,11 +96,16 @@ def main():
     parser.add_argument("--config", type=str, default="configs/default.yaml")
     parser.add_argument("--output-dir", type=str, default=None)
     parser.add_argument("--seed", type=int, default=None)
+    parser.add_argument("--epochs", type=int, default=None, help="Override number of epochs")
     args = parser.parse_args()
 
     cfg = load_config(args.config)
     if args.seed is not None:
         cfg["seed"] = args.seed
+    if args.epochs is not None:
+        if "train" not in cfg:
+            cfg["train"] = {}
+        cfg["train"]["epochs"] = args.epochs
     seed_everything(cfg.get("seed", 42))
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

@@ -76,6 +76,60 @@ python scripts/train.py --config configs/ablation/abl_no_supcon.yaml --seed 2023
 
 Evaluation runs during training based on `train.eval_period`. You can toggle rerank behavior in the config under `eval.rerank`. For offline reranking of existing checkpoints, use `scripts/rerank_checkpoints.py`.
 
+## Visualization
+
+To run the full visualization suite (extracting t-SNE features, retrieval results for success/near miss/hard fail, and Grad-CAM heatmaps) across all ablation configs and standard seeds, use the provided bash script:
+
+```bash
+bash scripts/visualization.sh
+```
+
+You can also run visualization manually for any specific checkpoint. For example:
+
+```bash
+# 1. Extract t-SNE, Near Miss, Hard Fail
+python scripts/extract_visuals.py --config configs/default.yaml --checkpoint outputs/default/seed_42/best.pth --outputs-dir outputs/visuals/seed_42
+
+# 2. Generate Grad-CAM heatmaps
+python scripts/generate_gradcam.py --config configs/default.yaml --checkpoint outputs/default/seed_42/best.pth --output-dir outputs/visuals/seed_42/gradcam
+```
+
+## Full Pipeline Demo
+
+Below is an end-to-end example of installing dependencies, training a model with a custom seed (e.g., `777`, which is different from the default seeds `42`, `3407`, `2023`), reranking, and manually running the visualization tools for that specific seed.
+
+**1. Install dependencies**
+```bash
+python -m pip install -r requirements.txt
+```
+
+**2. Train the model (Demo mode with 10 epochs)**
+```bash
+python scripts/train.py --config configs/default.yaml --seed 777 --epochs 10 --output-dir outputs/default/seed_777
+```
+
+**3. Rerank the saved checkpoint**
+```bash
+python scripts/rerank_checkpoints.py --outputs-root outputs/default/seed_777
+```
+
+**4. Extract Visualizations (t-SNE, Near Miss, Hard Fail)**
+This will extract features for t-SNE and save grids of retrieval success, near miss, and hard fail cases.
+```bash
+python scripts/extract_visuals.py \
+    --config configs/default.yaml \
+    --checkpoint outputs/default/seed_777/best.pth \
+    --outputs-dir outputs/visuals/seed_777
+```
+
+**5. Generate Grad-CAM Visualizations**
+```bash
+python scripts/generate_gradcam.py \
+    --config configs/default.yaml \
+    --checkpoint outputs/default/seed_777/best.pth \
+    --output-dir outputs/visuals/seed_777/gradcam
+```
+
 ## Tests
 
 ```bash
